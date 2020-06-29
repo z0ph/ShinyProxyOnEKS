@@ -30,11 +30,11 @@ kubectl label nodes -l alpha.eksctl.io/nodegroup-name=NG-UNMANAGED-C5-2x NodeSiz
 
 ### 4.2 Shareable storage for Shiny apps
 
-In the multi-user Shiny application environment, it is often encountered that multiple Shiny containers or even multiple nodes need to share and use the same storage. In the local data center, shared NAS storage is often used to meet the needs based on the NFS protocol. In the AWS platform, we can use [EFS service] (https://aws.amazon.com/cn/efs/) to achieve. The EFS service can provide a simple, scalable, fully managed and flexible NFS file system, and can be used in conjunction with other AWS cloud services.
+In the multi-user Shiny application environment, it is often encountered that multiple Shiny containers or even multiple nodes need to share and use the same storage. In the local data center, shared NAS storage is often used to meet the needs based on the NFS protocol. In the AWS platform, we can use [EFS service](https://aws.amazon.com/cn/efs/) to achieve. The EFS service can provide a simple, scalable, fully managed and flexible NFS file system, and can be used in conjunction with other AWS cloud services.
 For [Use EFS as persistent storage in EKS](https://aws.amazon.com/cn/premiumsupport/knowledge-center/eks-persistent-storage/), EKS provides [multiple ways](https://github.com/kubernetes-incubator/external-storage/tree/master/aws/efs), for example, can be used by the Container Storage Interface (CSI) driver in Pod and deployment. However, the container started by ShinyProxy does not support this method in Pod or Deployment. We need to pass the container-volumes parameter in [ShinyProxy Configuration](https://www.shinyproxy.io/configuration/) to allow the Shiny container to EFS storage can be used on the running node by way of mount.
 It can be achieved in the following way, we will [complete the mounting of EFS on the EKS node when the EKS node is started](https://github.com/weaveworks/eksctl/blob/master/examples/05-advanced-nodegroups.yaml), and through the configuration of ShinyProxy to complete the path mapping and use of the subsequent Shiry container startup.
 
-First refer to the document [Create EFS Storage] in the AWS region where the EKS cluster is located (https://docs.aws.amazon.com/zh_cn/efs/latest/ug/creating-using.html), and complete [Security Group And mount point settings](https://docs.aws.amazon.com/zh_cn/efs/latest/ug/mounting-fs.html), record the EFS file system ID after successful creation.
+First refer to the document [Create EFS Storage in the AWS region where the EKS cluster is located](https://docs.aws.amazon.com/zh_cn/efs/latest/ug/creating-using.html), and complete [Security Group And mount point settings](https://docs.aws.amazon.com/zh_cn/efs/latest/ug/mounting-fs.html), record the EFS file system ID after successful creation.
 
 ```
 ## To enable the node to mount EFS storage, we will add three commands to the "preBootstrapCommands" configuration section of the configuration file of the node group creation process to complete the automatic mounting of EFS during the node startup process
@@ -160,9 +160,9 @@ Spot instances are suitable for a variety of stateless, fault-tolerant or flexib
 
 ### 4.7 Build a complete operation, maintenance and monitoring system
 
-Amazon EKS provides a complete monitoring and operation and maintenance system native to AWS. In addition, it also integrates well with mainstream Kubernetes management tools and monitoring tools in the open source ecosystem. You can refer to **[Common Operation and Maintenance and Monitoring Methods](https:/ /github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/III-Monitor.md)** Deploy to build a complete operation and maintenance system for Amazon EKS and Shiny platform. For other deployments such as Kubernetes Metrics Server, Prometheus, Grafana, etc., please refer to: [Prometheus Control Level Indicators](https://docs.aws.amazon.com/zh_cn/eks/latest/userguide/prometheus.html), [Install Kubernetes Metrics Server](https://docs.aws.amazon.com/zh_cn/eks/latest/userguide/metrics-server.html).
+Amazon EKS provides a complete monitoring and operation and maintenance system native to AWS. In addition, it also integrates well with mainstream Kubernetes management tools and monitoring tools in the open source ecosystem. You can refer to **[Common Operation and Maintenance and Monitoring Methods](./III-Monitor.md)** Deploy to build a complete operation and maintenance system for Amazon EKS and Shiny platform. For other deployments such as Kubernetes Metrics Server, Prometheus, Grafana, etc., please refer to: [Prometheus Control Level Indicators](https://docs.aws.amazon.com/zh_cn/eks/latest/userguide/prometheus.html), [Install Kubernetes Metrics Server](https://docs.aws.amazon.com/zh_cn/eks/latest/userguide/metrics-server.html).
 
-![EKS Dashboard](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/dashboard.png)
+![EKS Dashboard](./../img/dashboard.png)
 Photo caption: EKS Dashboard management interface
 
 
