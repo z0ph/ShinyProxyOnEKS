@@ -1,25 +1,25 @@
-## 二、Amazon EKS 创建
+## 2. Amazon EKS creation
 
-[Amazon EKS 集群](https://docs.aws.amazon.com/zh_cn/eks/latest/userguide/clusters.html)包含两个主要部分：Amazon EKS 控制层面 和 Amazon EKS 工作线程节点。Amazon EKS 控制层面由运行 Kubernetes 软件（如 etcd）的控制层面节点和 Kubernetes API 服务器组成。控制层面由 AWS 管理，为给 AWS 用户提供更高的安全性及更好的使用体验，每个 Amazon EKS 集群控制层面都是单租户而且是唯一的，它在其自己的一组 Amazon EC2 实例上运行。
+[Amazon EKS cluster](https://docs.aws.amazon.com/zh_cn/eks/latest/userguide/clusters.html) contains two main parts: Amazon EKS control plane and Amazon EKS worker thread node. The Amazon EKS control plane consists of control plane nodes running Kubernetes software (such as etcd) and a Kubernetes API server. The control plane is managed by AWS. To provide AWS users with higher security and a better user experience, each Amazon EKS cluster control plane is single-tenant and unique. It is on its own set of Amazon EC2 instances. run.
 
-### 2.1 EKS 控制层面创建
+### 2.1 EKS control plane creation
 
-用户可以便捷的通过一条 eksctl 指令即完成EKS集群及工作节点的创建，但为了让用户更好的理解 EKS 工作方式，及更好地在独立步骤中自定义 ShinyProxy 运行所需的配置和资源，本文将分成两个阶段进行分别创建，此部分首先完成 EKS 集群控制层面的创建，可参考 [eksctl：Creating a cluster](https://eksctl.io/usage/creating-and-managing-clusters/)。
+Users can easily complete the creation of EKS clusters and working nodes through an eksctl command, but in order to let users better understand the working mode of EKS and better customize the configuration and resources required for ShinyProxy operation in independent steps, this article It will be divided into two stages to create separately. This part first completes the creation of the EKS cluster control plane. Refer to [eksctl: Creating a cluster](https://eksctl.io/usage/creating-and-managing-clusters/).
 
 ```
-## 全局环境配置
-## AWS区域设置，可将此环境设置加入到操作系统用户环境的Profile中实现登录后自动设置
+## Global environment configuration
+## AWS regional settings, this environment setting can be added to the profile of the operating system user environment to achieve automatic setting after login
 REGION_EKS=cn-northwest-1
 export AWS_DEFAULT_REGION=$REGION_EKS
 
-## EKS集群名
+## EKS cluster name
 EKS_CLUSTER_NAME=EKS-SHINY
 
-## 可自定义EKS集群的Tag标签信息，用于后续的费用跟踪及其他管理（可选项）
+## The tag information of the EKS cluster can be customized for subsequent expense tracking and other management (optional)
 TAG="Environment=Alpha-Test,Application=Shiny"
 
-## 以下命令将创建名为 EKS-SHINY、版本为1.15不带任何工作节点组的EKS集群
-## 各参数含义可通过 eksctl create cluster --help 查看
+## The following command will create an EKS cluster named EKS-SHINY, version 1.15 without any working node group
+## The meaning of each parameter can be viewed through eksctl create cluster --help
 
 eksctl create cluster \
   --name=$EKS_CLUSTER_NAME \
@@ -31,47 +31,46 @@ eksctl create cluster \
   --full-ecr-access \
   --alb-ingress-access
 
-## 集群配置通常需要10到15分钟，此过程将自动创建所需的 VPC/安全组/ IAM角色/ EKS API 服务等诸多资源
+## Cluster configuration usually takes 10 to 15 minutes, this process will automatically create the required VPC/security group/IAM role/EKS API service and many other resources
 
-## 集群访问测试,正常会显示集群的 CLUSTER-IP 等信息
+## Cluster access test, normally it will display the cluster's CLUSTER-IP and other information
 kubectl get svc --watch
 
-## 如需删除创建的EKS集群，可使用下面的命令
+## To delete the created EKS cluster, use the following command
 ## eksctl delete cluster --name=$EKS_CLUSTER_NAME --region=$REGION_EKS
 ```
+The management server terminal will display the creation process
 
-管理服务器终端将显示创建过程
+![Terminal display EKS creation process](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/EKS-Create.png)
+Caption: The terminal displays the EKS creation process
 
-![终端显示 EKS 创建过程](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/EKS-Create.png)
-图片说明：终端显示 EKS 创建过程
+eksctl will complete the EKS cluster creation through the AWS Cloudformation service. You can also view the creation process in the Cloudformation service in the console, and view and analyze the events in Cloudformation when an exception occurs to understand the detailed cause of the error.
 
-eksctl 将通过 AWS Cloudformation 服务完成 EKS 集群创建，也可在控制台 Cloudformation 服务中查看创建过程，以及在出现异常时查看和分析 Cloudformation 中的事件了解详细的错误原因。
+![Cloudformation shows EKS creation process](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/EKS-Create-Console.png)
+Caption: Cloudformation shows EKS creation process
 
-![Cloudformation 显示 EKS 创建过程](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/EKS-Create-Console.png)
-图片说明：Cloudformation 显示 EKS 创建过程
+### 2.2 Node group creation
 
-### 2.2 节点组创建
+The worker thread computer in Kubernetes is called a “node”, and the Amazon EKS worker node is connected to the control plane of the cluster through the cluster API server endpoint. A node group is one or more Amazon EC2 instances deployed in an Amazon EC2 Auto Scaling Group. The EC2 instance will also be the environment in which ShinyProxy and Shiny applications are actually running. Each node group must use the same instance type, but an EKS cluster can contain multiple node groups, so you can choose to create multiple different node groups to support different node types according to the application scenario.
 
-Kubernetes 中的工作线程计算机称为“节点”，Amazon EKS 工作节点通过集群 API 服务器终端节点连接到集群的控制层面。节点组是在 Amazon EC2 自动伸缩组（Auto Scaling Group） 中部署的一个或多个 Amazon EC2 实例，EC2 实例也将是真正运行ShinyProxy及Shiny应用的环境。每个节点组必须使用相同的实例类型，但一个 EKS 集群可以包含多个节点组，所以您可根据应用场景选择创建多个不同的节点组来支持不同的节点类型。
+Below we will create the node group in EKS by using eksctl and [parameter file](https://eksctl.io/usage/schema/). Using the parameter file can facilitate later modification and multiplexing.
 
-下面我们将通过使用 eksctl 及[参数文件](https://eksctl.io/usage/schema/)的方式创建 EKS 中的节点组，使用参数文件可便于以后修改及多次复用。
-
-如果希望后续可以通过SSH登录到EKS 工作节点，需要配置其中的 ssh 节及参数 publicKeyName ，可以使用跟之前创建的管理机 EC2 相同的密钥对，也可以新建新的密钥对分配给 EKS 节点使用。
+If you want to log in to the EKS working node through SSH in the future, you need to configure the ssh section and the parameter publicKeyName in it. You can use the same key pair as the management machine EC2 created previously, or you can create a new key pair and assign it to the EKS node. .
 
 ```
 mkdir -p ~/download
 cd ~/download
 
-## 相关参数可参考：https://eksctl.io/usage/schema/
-## 以下命令将创建一个名为 EKS-Shiny-NodeGroup 的节点组，包含2个 m5.xlarge 类型EC2的节点，存储空间为30GB
-## 部分参数可根据实际需求进行修改，如EC2实例类型、数量、EBS卷大小等
-## 可在参数文件中根据需要添加 节点标签（labels）、启动时自动执行的脚本、以及附加的Policy
-## 添加Policy时必须包括默认的 AmazonEKSWorkerNodePolicy 及 AmazonEKS_CNI_Policy
+## Related parameters can be referred to: https://eksctl.io/usage/schema/
+## The following command will create a node group named EKS-Shiny-NodeGroup with 2 m5.xlarge type EC2 nodes and a storage space of 30GB
+## Some parameters can be modified according to actual needs, such as EC2 instance type, number, EBS volume size, etc.
+## In the parameter file, you can add node labels (labels), scripts that are automatically executed at startup, and additional policies
+## When adding a Policy, you must include the default AmazonEKSWorkerNodePolicy and AmazonEKS_CNI_Policy
 
-## 节点组名称
+## Node group name
 NODE_GROUP_NAME="EKS-Shiny-NodeGroup"
 
-## 编辑NodeGroup配置文件，文件名可自定义
+## Edit NodeGroup configuration file, the file name can be customized
 vi EKS-Shiny-NodeGroup.yaml
 
 apiVersion: eksctl.io/v1alpha5
@@ -82,7 +81,7 @@ metadata:
   region: cn-northwest-1
 
 nodeGroups:
-  - name: EKS-Shiny-NodeGroup
+  -name: EKS-Shiny-NodeGroup
     instanceType: m5.xlarge
     minSize: 1
     maxSize: 10
@@ -90,7 +89,7 @@ nodeGroups:
     volumeSize: 30
     ssh:
       allow: true
-      publicKeyName: # EC2密钥对
+      publicKeyName: # EC2 key pair
     labels: {role: worker, NodeSize: m5.xlarge}
     tags:
       {
@@ -99,28 +98,27 @@ nodeGroups:
       }
     iam:
       attachPolicyARNs:
-        - arn:aws-cn:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws-cn:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws-cn:iam::aws:policy/AmazonS3FullAccess
+        -arn:aws-cn:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        -arn:aws-cn:iam::aws:policy/AmazonEKS_CNI_Policy
+        -arn:aws-cn:iam::aws:policy/AmazonS3FullAccess
       withAddonPolicies:
         albIngress: true
         autoScaler: true
         cloudWatch: true
         ebs: true
         efs: true
+```
 
+## Create NodeGroup
+`eksctl create nodegroup --config-file=./EKS-Shiny-NodeGroup.yaml`
 
-## 创建NodeGroup
-eksctl create nodegroup --config-file=./EKS-Shiny-NodeGroup.yaml
-
-## 在某些异常的情况下，如需删除之前失败的NodeGroup可执行下面的命令
+## In some abnormal cases, if you need to delete the NodeGroup that failed before, you can execute the following command
 ## eksctl delete nodegroup --config-file=./EKS-Shiny-NodeGroup.yaml --approve
 
-## 查看目前节点组信息，确认各节点状态显示为“Ready”
-kubectl get node --wide --watch
+## View the current node group information and confirm that the status of each node is displayed as "Ready"
+`kubectl get node --wide --watch`
 
 
 ## License
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
-

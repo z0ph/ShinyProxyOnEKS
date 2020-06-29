@@ -1,22 +1,22 @@
-## 三、ShinyProxy 部署
+## 3. ShinyProxy deployment
 
-ShinyProxy 原生支持三种容器后端平台，单机版本的 Docker、Docker Swarm 集群以及 Kubernetes 集群。在此步骤我们将完成 ShinyProxy 在 EKS Kubernetes 平台上的部署。
+ShinyProxy natively supports three container back-end platforms, the stand-alone version of Docker, Docker Swarm cluster, and Kubernetes cluster. In this step, we will complete the deployment of ShinyProxy on the EKS Kubernetes platform.
 
-### 3.1 Amazon ECR配置
+### 3.1 Amazon ECR configuration
 
-[Amazon Elastic Container Registry](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/what-is-ecr.html) (Amazon ECR) 是一项托管 AWS Docker 镜像仓库服务，安全、可扩展且可靠。通过与 AWS IAM服务配合使用，Amazon ECR 可限制仅限特定用户或 Amazon EC2 实例可以访问，您可以使用 Docker CLI 推送、拉取和管理映像。可参考 [通过控制台创建容器镜像的ECR存储库](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/getting-started-console.html) 以及 [Amazon ECR CLI参考](https://docs.aws.amazon.com/cli/latest/reference/ecr/index.html)。 
-如果相关的容器已经存放在本地或其他三方的镜像仓库中，此步骤可忽略。
+[Amazon Elastic Container Registry](https://docs.aws.amazon.com/en_us/AmazonECR/latest/userguide/what-is-ecr.html) (Amazon ECR) is a managed AWS Docker image warehouse service, safe , Scalable and reliable. By working with AWS IAM services, Amazon ECR can restrict access to specific users or Amazon EC2 instances, and you can use the Docker CLI to push, pull, and manage images. You can refer to [Create ECR Repository for Container Images via Console](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/getting-started-console.html) and [Amazon ECR CLI Reference](https://docs.aws.amazon.com/cli/latest/reference/ecr/index.html).
+If the relevant container has been stored in the local or other three-party mirror warehouse, this step can be ignored.
 
 ```
-## 通过AWS CLI方式创建容器镜像的ECR存储库
+## Create a container image ECR repository via AWS CLI
 REGION_EKS=cn-northwest-1
 export AWS_DEFAULT_REGION=$REGION_EKS
 
-## 创建三个ECR存储库
+## Create three ECR repositories
 aws ecr create-repository \
     --repository-name shiny-application \
     --image-scanning-configuration scanOnPush=true
-    
+
 aws ecr create-repository \
     --repository-name kube-proxy-sidecar \
     --image-scanning-configuration scanOnPush=true
@@ -24,48 +24,45 @@ aws ecr create-repository \
 aws ecr create-repository \
     --repository-name shinyproxy-application \
     --image-scanning-configuration scanOnPush=true
-    
 
-## 登录ECR服务（下面的命令无需修改可执行，注意保留 $符号及括号）
-## 执行成功将返回 “Login Succeeded” 信息
+## Log into the ECR service (the following commands do not need to be modified and executable, pay attention to retain the $ symbol and brackets)
+## Successful execution will return "Login Succeeded" message
 $(aws ecr get-login --no-include-email --region cn-northwest-1)
-
 ```
 
-### 3.2 Shiny 测试应用
+### 3.2 Shiny test application
 
-此部分我们将创建用于 ShinyProxy 的一个简单 Shiny 测试应用，为了简化 Shiny 应用的编译过程，我们在本文中直接使用 Rocker 官方的示例 shiny 容器作为测试应用。您也可自行选择用于测试的R应用容器，比如 [Rstudio](https://github.com/rstudio/shiny-examples/blob/master/docker/Dockerfile) 的示例 Shiny 应用，或将目前的 R 应用容器化并通过 Shiny 进行封装后进行实际的测试。如已有就绪的 Shiny 应用容器，此步骤可忽略。
+In this part, we will create a simple Shiny test application for ShinyProxy. In order to simplify the compilation process of the Shiny application, we directly use Rocker's official shiny container as a test application in this article. You can also choose the R application container for testing, such as the sample Shiny application of [Rstudio](https://github.com/rstudio/shiny-examples/blob/master/docker/Dockerfile), or the current R Apply containerization and encapsulate with Shiny for actual testing. If you already have a Shiny application container ready, this step can be ignored.
 
 
 ```
-## 搜索 Shiny 容器
+## Search Shiny Container
 docker search shiny
 
-## 拉取 Shiny 容器
+## Pull the Shiny container
 docker pull rocker/shiny
 
-## 简单测试，如在80端口启动Shiny（EC2上未使用端口均可），需对应开启EC2安全组设置
+## Simple test, such as starting Shiny on port 80 (unused ports on EC2), you need to enable the EC2 security group settings accordingly
 sudo docker run -it -p 80:3838 rocker/shiny
-
 ```
 
-通过浏览器访问 EC2 公网IP地址加对应端口，如Shiny应用正常会显示“Welcome to Shiny Server!”页面。
+Access the EC2 public network IP address and corresponding port through a browser. If the Shiny application normally displays the "Welcome to Shiny Server!" page.
 
-如使用Dockerfile进行Shiny容器的创建，或使用已有的Shiny容器，应将Dockerfile中末尾启动命令注释，重新进行docker build创建后再推送到Amazon ECR镜像仓库，并将Shiny容器的启动命令对应写入 Shinyproxy 的配置文件中，以供后续Shinyproxy发起正确的调用。
+If you use Dockerfile to create a Shiny container, or use an existing Shiny container, you should annotate the start command at the end of the Dockerfile, re-create the docker build and then push it to the Amazon ECR image warehouse, and write the start command of the Shiny container accordingly Shinyproxy's configuration file for subsequent Shinyproxy to initiate the correct call.
 
-### 3.3 ShinyProxy 配置
+### 3.3 ShinyProxy configuration
 
-在此步骤中，我们将参考 [OpenAnalytics 的示例配置](https://github.com/openanalytics/shinyproxy-config-examples/tree/master/03-containerized-kubernetes) 完成ShinyProxy 及 kube-proxy-sidecar 的部署。
+In this step, we will refer to [Example Configuration of OpenAnalytics](https://github.com/openanalytics/shinyproxy-config-examples/tree/master/03-containerized-kubernetes) to complete ShinyProxy and kube-proxy-sidecar deploy.
 
 
 ```
-## 下载 OpenAnalytics 的示例配置
+## Download the sample configuration for OpenAnalytics
 cd ~/download
 git clone https://github.com/openanalytics/shinyproxy-config-examples.git
 cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes
 
 vi kube-proxy-sidecar/Dockerfile
-## 修改 kube-proxy-sidecar 目录下的Dockerfile 文件内容为：
+## Modify the content of the Dockerfile file in the kube-proxy-sidecar directory to:
 
 FROM alpine:3.6
 ADD https://share-aws-nx.s3.cn-northwest-1.amazonaws.com.cn/shiny/kubectl1.7.4 /usr/local/bin/kubectl
@@ -75,7 +72,7 @@ ENTRYPOINT ["/usr/local/bin/kubectl", "proxy"]
 
 ```
 
-修改ShinyProxy 的 Dockerfile 文件，可更新 ShinyProxy 至最新稳定版本或其他下载源，请定期查看[ShinyProxy版本信息](https://www.shinyproxy.io/downloads/)。
+Modify ShinyProxy's Dockerfile file to update ShinyProxy to the latest stable version or other download sources. Please check [ShinyProxy version information](https://www.shinyproxy.io/downloads/) regularly.
 
 ```
 FROM openjdk:8-jre
@@ -90,15 +87,15 @@ CMD ["java", "-jar", "/opt/shinyproxy/shinyproxy.jar"]
 ```
 
 
-在创建 ShinyProxy 容器及推送前，需要对其配置文件 application.yml 进行一些相应的编辑以适应目前的环境。其中涉及的参数含义可参考：[Shinyproxy配置参数说明](https://www.shinyproxy.io/configuration/)。 
+Before creating the ShinyProxy container and pushing it, you need to make some corresponding edits to its configuration file application.yml to adapt to the current environment. The meaning of the parameters involved can be referred to: [Shinyproxy configuration parameter description](https://www.shinyproxy.io/configuration/).
 
-**需要注意的事项：**
+**Notice:**
 
-* 修改配置文件示例中的AWS账号为您的账号信息；
-* 目前测试使用Shinyproxy的Simple认证模式，用户名及密码根据实际情况进行修改，后续需进行优化
-* ShinyProxy 后端可运行的容器，可来自于ECR镜像仓库，也可来自于其他镜像仓库或互联网的容器
-* 注意匹配每个Shiny容器的启动命令路径与原Dockerfile中信息一致
-* ShinyProxy 使用了Spring Boot框架，[相关参数设置](https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-application-properties.html)会影响其运行配置。比如在Shiny容器中上传文件的大小限制，默认只有1MB或10MB，可通过设置配置文件中 spring 节来提升限制，同时还需要在Shiny应用中也需要相应设置。
+* Modify the AWS account in the configuration file example to your account information;
+* At present, the simple authentication mode of Shinyproxy is used, and the user name and password are modified according to the actual situation.
+* ShinyProxy backend can run containers, can come from ECR mirror warehouse, can also come from other mirror warehouse or Internet container
+* Note that the start command path matching each Shiny container is consistent with the information in the original Dockerfile
+* ShinyProxy uses the Spring Boot framework, [related parameter settings](https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-application-properties.html) will affect its running configuration. For example, the size limit of the uploaded file in the Shiny container is only 1MB or 10MB by default. You can increase the limit by setting the spring section in the configuration file. You also need to set the corresponding value in the Shiny application.
 
 ```
 cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/shinyproxy-example
@@ -110,10 +107,10 @@ proxy:
   authentication: simple
   admin-groups: admins
   users:
-  - name: admin
+  -name: admin
     password: Admin@123
     groups: admins
-  - name: guest
+  -name: guest
     password: Guest@123
     groups: guest
   container-backend: kubernetes
@@ -127,13 +124,13 @@ proxy:
     image-pull-policy: IfNotPresent
     image-pull-secret:
   specs:
-  - id: 00_demo_shiny_application
+  -id: 00_demo_shiny_application
     display-name: Simple Shiny Application Demo
     description: Simple Shiny Application Demo
     container-cmd: ["sh", "/usr/bin/shiny-server.sh"]
-    container-image: <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shiny-application:v1
+    container-image: <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shiny-application:v1
     access-groups: [admins, guest]
-  - id: 01_hello_shiny_application
+  -id: 01_hello_shiny_application
     display-name: Hello Application
     description: Application which demonstrates the basics of a Shiny app
     container-cmd: ["R", "-e", "shinyproxy::run_01_hello()"]
@@ -149,130 +146,4 @@ spring:
 logging:
   file:
     shinyproxy.log
-
 ```
-
-### 3.4 容器推送至Amazon ECR
-
-为完成整体部署，我们需要推送三个容器到Amazon ECR镜像仓库，包括：
-
-* ShinyProxy 容器
-* kube-proxy-sidecar容器（用于ShinyProxy的代理功能）
-* Shiny 测试应用容器
-
-在标记上传容器镜像时，请注意更换其中的 AWS 账号为您的账号信息。
-通过ECR中的容器标签，可用于多次发布不同容器的版本控制。可参见：[推送镜像](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/docker-push-ecr-image.html)
-
-```
-## 标记并推送 Shiny 测试应用容器到 ECR 服务
-docker tag rocker/shiny:latest <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shiny-application:v1
-docker push <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shiny-application:v1
-
-## 创建、标记并推送 kube-proxy-sidecar 容器
-cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/kube-proxy-sidecar
-docker build -t <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/kube-proxy-sidecar:v1 .
-docker push <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/kube-proxy-sidecar:v1
-
-## 创建、标记容器并推送到 ECR 服务，标签可自定义
-cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/shinyproxy-example
-docker build -t <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shinyproxy-application:v1 .
-docker push <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shinyproxy-application:v1
-
-```
-
-### 3.5 ShinyProxy 部署
-
-sp-authorization.yaml 文件无需修改。
-
-编辑 sp-service.yaml 文件，以便部署后 EKS 自动创建负载均衡器便于访问。
-修改 type 为 LoadBalancer，其中的 port 参数为后续负载均衡器所使用的端口。
-
-```
-cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes
-
-vi sp-service.yaml
-
-kind: Service
-apiVersion: v1
-metadata:
-  name: shinyproxy
-spec:
-  type: **LoadBalancer**
-  selector:
-    run: shinyproxy
-  ports:
-  - protocol: TCP
-**    port****:**** ****80**
-    targetPort: 8080
-    nodePort: 32094
-```
-
-编辑 sp-deployment.yaml 文件，修改其中内容以对应在目前环境中已在 Amazon ECR 镜像仓库中发布的容器名称及标签。注意需根据修改其中的AWS账号为您的账号信息。
-
-```
-cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes
-
-vi sp-deployment.yaml 
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: shinyproxy
-  namespace: default
-spec:
-  selector:
-    matchLabels:
-      run: shinyproxy
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        run: shinyproxy
-    spec:
-      containers:
-      - name: shinyproxy
-        image: <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shinyproxy-application:v1
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8080
-      - name: kube-proxy-sidecar
-        image: <AWS账号ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/kube-proxy-sidecar:v1
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8001
-      imagePullSecrets:
-
-```
-
-```
-
-## 使用 kubectl 完成部署
-kubectl apply -f sp-authorization.yaml
-kubectl apply -f sp-deployment.yaml
-kubectl apply -f sp-service.yaml
-
-## 后续如对 sp-deployment.yaml 文件进行了修改，可重新Apply得以应用新的内容
-kubectl apply -f sp-deployment.yaml
-
-## 可使用下面的命令查看ShinyProxy的部署情况，正常情况下会很快显示 Running 状态
-kubectl get pod -n shiny --watch
-
-## 部署过程会自动创建AWS的负载均衡器用于访问 ShinyProxy
-## 通过下面的命令可在 EXTERNAL-IP 列获取AWS负载均衡器信息的访问地址链接
-## 负载均衡器有一个约几分钟的创建和生效过程，可通过AWS控制台确认负载均衡器状态正常后再进行访问
-kubectl get svc
-
-```
-
-访问负载均衡器地址及端口，正常可显示 ShinyProxy 的登录界面。输入之前配置的用户名和密码信息，可显示 ShinyProxy 的管理界面，点击其中已有的 Shiny 应用即可启动它们。至此，ShinyProxy 平台已经成功地运行在 Amazon EKS 服务上。
-
-![ShinyProxy 主界面](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/ShinyProxy-GUI.png)
-图片说明：ShinyProxy 主界面
-
-![Shiny 应用的运行界面](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/ShinyProxy-Shiny-GUI.png)
-图片说明：Shiny 应用的运行界面
-
-## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.
-

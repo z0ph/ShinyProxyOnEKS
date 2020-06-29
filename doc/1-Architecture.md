@@ -1,26 +1,26 @@
-## 一、平台架构及说明
+## 1. Platform Architecture and Description
 
-在这个解决方案中，我们会主要用到以下的服务：
+In this solution, we will mainly use the following services:
 
-* AWS Identity and Access Management（IAM）：用于AWS平台的身份认证及权限管理
-* Amazon Elastic Compute Cloud (EC2)：用于EKS管理服务器及EKS中工作节点（[Node](https://kubernetes.io/docs/concepts/architecture/nodes/)） 
-* Amazon Elastic Kubernetes Service（EKS）：用于运行ShinyProxy及Shiny应用的容器调度及管理；
-* Amazon Elastic Container Registry（ECR）：用于存放ShinyProxy及Shiny容器的镜像仓库；
-* Elastic Load Balancing（弹性负载均衡器）：用于接收访问用户的请求并转发给后端的ShinyProxy组件；
-* Amazon CloudWatch：用于Amazon EKS服务及EKS中工作节点的监控及日志管理
-* Amazon Elastic File System（EFS）：用于存放 Shiny应用所需的持久化共享数据；
+* AWS Identity and Access Management (IAM): used for identity authentication and permission management on the AWS platform
+* Amazon Elastic Compute Cloud (EC2): used for EKS management server and working nodes in EKS ([Node](https://kubernetes.io/docs/concepts/architecture/nodes/))
+* Amazon Elastic Kubernetes Service (EKS): used for container scheduling and management of ShinyProxy and Shiny applications;
+* Amazon Elastic Container Registry (ECR): Mirror warehouse for storing ShinyProxy and Shiny containers;
+* Elastic Load Balancing (elastic load balancer): used to receive access user requests and forward it to the back-end ShinyProxy component;
+* Amazon CloudWatch: used for monitoring and log management of Amazon EKS service and working nodes in EKS
+* Amazon Elastic File System (EFS): used to store persistent shared data required by Shiny applications;
 
 
-![ShinyProxy On EKS架构](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/ShinyOnEKS-Arch.png)
-图片说明：ShinyProxy On EKS 架构
+![ShinyProxy On EKS Architecture](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/ShinyOnEKS-Arch.png)
+Caption: ShinyProxy On EKS architecture
 
-**整个平台的构建过程将主要分为三个步骤：**
+**The construction process of the entire platform will be divided into three steps:**
 
-* 创建 Amazon EKS 服务
-* 部署 ShinyProxy 
-* 围绕 Shiny 应用场景的进一步优化配置
+* Create Amazon EKS service
+* Deploy ShinyProxy
+* Further optimized configuration around Shiny application scenarios
 
-在开始 Amazon EKS 服务的创建和部署前，请先参考 **[准备工作](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/I-Preparation.md)** 和 **[管理机配置](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/II-ManagementServer.md)** 完成前期的准备工作。
+Before starting the creation and deployment of the Amazon EKS service, please refer to **[Preparation](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/I-Preparation.md)* * And **[Management Machine Configuration](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/II-ManagementServer.md)** Complete the preparatory work.
 
 
 ## License
