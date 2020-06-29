@@ -3,7 +3,7 @@ kind: ClusterConfig
 
 metadata:
   name: EKS-SHINY
-  region: cn-northwest-1
+  region: eu-west-1
 
 nodeGroups:
   - name: EKS-Shiny-NodeGroup
@@ -23,9 +23,9 @@ nodeGroups:
       }
     iam:
       attachPolicyARNs:
-        - arn:aws-cn:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws-cn:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws-cn:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
       withAddonPolicies:
         albIngress: true
         autoScaler: true

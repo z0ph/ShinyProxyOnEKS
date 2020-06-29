@@ -4,7 +4,7 @@
 ## 以上信息将用于确定管理机启动所依赖的VPC和子网
 ## 设置相应的环境变量
 
-REGION_EKS=ap-east-1
+REGION_EKS=eu-west-1
 export AWS_DEFAULT_REGION=$REGION_EKS
 VPC_ID=<VPC-ID>
 PUBLIC_SUBNET_ID=<SUBNET-ID>

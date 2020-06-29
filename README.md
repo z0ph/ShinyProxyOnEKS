@@ -60,13 +60,10 @@ Based on the above factors, we still need to design a set of highly reliable and
 ## [1. Platform architecture and description](./doc/1-Architecture.md)
 
 
-
 ## [2. Amazon EKS creation](./doc/2-EKS-Create.md)
 
 
-
 ## [3. ShinyProxy deployment](./doc/3-ShinyProxy-Deploy.md)
-
 
 
 ## [4. Features and optimization](./doc/4-Optimization.md)

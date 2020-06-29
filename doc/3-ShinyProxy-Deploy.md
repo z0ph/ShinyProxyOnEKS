@@ -9,7 +9,7 @@ If the relevant container has been stored in the local or other three-party mirr
 
 ```
 ## Create a container image ECR repository via AWS CLI
-REGION_EKS=cn-northwest-1
+REGION_EKS=eu-west-1
 export AWS_DEFAULT_REGION=$REGION_EKS
 
 ## Create three ECR repositories
@@ -158,7 +158,7 @@ To complete the overall deployment, we need to push three containers to the Amaz
 * Shiny test application container
 
 When marking the upload of the container image, please pay attention to replace the AWS account with your account information.
-The container label in ECR can be used to release version control of different containers multiple times. See: [Push Image] (https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/docker-push-ecr-image.html)
+The container label in ECR can be used to release version control of different containers multiple times. See: [Push Image](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/docker-push-ecr-image.html)
 
 ```
 ## Mark and push Shiny test application container to ECR service

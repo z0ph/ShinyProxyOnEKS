@@ -9,7 +9,7 @@ Users can easily complete the creation of EKS clusters and working nodes through
 ```
 ## Global environment configuration
 ## AWS regional settings, this environment setting can be added to the profile of the operating system user environment to achieve automatic setting after login
-REGION_EKS=cn-northwest-1
+REGION_EKS=eu-west-1
 export AWS_DEFAULT_REGION=$REGION_EKS
 
 ## EKS cluster name
@@ -18,12 +18,12 @@ EKS_CLUSTER_NAME=EKS-SHINY
 ## The tag information of the EKS cluster can be customized for subsequent expense tracking and other management (optional)
 TAG="Environment=Alpha-Test,Application=Shiny"
 
-## The following command will create an EKS cluster named EKS-SHINY, version 1.15 without any working node group
+## The following command will create an EKS cluster named EKS-SHINY, version 1.16 without any working node group
 ## The meaning of each parameter can be viewed through eksctl create cluster --help
 
 eksctl create cluster \
   --name=$EKS_CLUSTER_NAME \
-  --version=1.15 \
+  --version=1.16 \
   --region=$REGION_EKS \
   --tags $TAG \
   --without-nodegroup \
@@ -37,17 +37,18 @@ eksctl create cluster \
 kubectl get svc --watch
 
 ## To delete the created EKS cluster, use the following command
-## eksctl delete cluster --name=$EKS_CLUSTER_NAME --region=$REGION_EKS
+eksctl delete cluster --name=$EKS_CLUSTER_NAME --region=$REGION_EKS
 ```
+
 The management server terminal will display the creation process
 
 ![Terminal display EKS creation process](./../img/EKS-Create.png)
 Caption: The terminal displays the EKS creation process
 
-eksctl will complete the EKS cluster creation through the AWS Cloudformation service. You can also view the creation process in the Cloudformation service in the console, and view and analyze the events in Cloudformation when an exception occurs to understand the detailed cause of the error.
+`eksctl` will complete the EKS cluster creation through the AWS Cloudformation service. You can also view the creation process in the Cloudformation service in the console, and view and analyze the events in Cloudformation when an exception occurs to understand the detailed cause of the error.
 
 ![Cloudformation shows EKS creation process](./../img/EKS-Create-Console.png)
-Caption: Cloudformation shows EKS creation process
+*Caption: Cloudformation shows EKS creation process*
 
 ### 2.2 Node group creation
 
@@ -55,8 +56,7 @@ The worker thread computer in Kubernetes is called a “node”, and the Amazon 
 
 Below we will create the node group in EKS by using eksctl and [parameter file](https://eksctl.io/usage/schema/). Using the parameter file can facilitate later modification and multiplexing.
 
-If you want to log in to the EKS working node through SSH in the future, you need to configure the ssh section and the parameter publicKeyName in it. You can use the same key pair as the management machine EC2 created previously, or you can create a new key pair and assign it to the EKS node..
-
+If you want to log in to the EKS working node through SSH in the future, you need to configure the ssh section and the parameter `publicKeyName` in it. You can use the same key pair as the management machine EC2 created previously, or you can create a new key pair and assign it to the EKS node..
 
 ```
 mkdir -p ~/download
@@ -79,10 +79,10 @@ kind: ClusterConfig
 
 metadata:
   name: EKS-SHINY
-  region: cn-northwest-1
+  region: eu-west-1
 
 nodeGroups:
-  -name: EKS-Shiny-NodeGroup
+  - name: EKS-Shiny-NodeGroup
     instanceType: m5.xlarge
     minSize: 1
     maxSize: 10
@@ -99,9 +99,9 @@ nodeGroups:
       }
     iam:
       attachPolicyARNs:
-        -arn:aws-cn:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        -arn:aws-cn:iam::aws:policy/AmazonEKS_CNI_Policy
-        -arn:aws-cn:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
       withAddonPolicies:
         albIngress: true
         autoScaler: true
