@@ -11,7 +11,7 @@ In this solution, we will mainly use the following services:
 * Amazon Elastic File System (EFS): used to store persistent shared data required by Shiny applications;
 
 
-![ShinyProxy On EKS Architecture](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/ShinyOnEKS-Arch.png)
+![ShinyProxy On EKS Architecture](./../img/ShinyOnEKS-Arch.png)
 Caption: ShinyProxy On EKS architecture
 
 **The construction process of the entire platform will be divided into three steps:**
@@ -20,7 +20,7 @@ Caption: ShinyProxy On EKS architecture
 * Deploy ShinyProxy
 * Further optimized configuration around Shiny application scenarios
 
-Before starting the creation and deployment of the Amazon EKS service, please refer to **[Preparation](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/I-Preparation.md)* * And **[Management Machine Configuration](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/II-ManagementServer.md)** Complete the preparatory work.
+Before starting the creation and deployment of the Amazon EKS service, please refer to **[Preparation](./I-Preparation.md)** And **[Management Machine Configuration](./II-ManagementServer.md)** Complete the preparatory work.
 
 
 ## License

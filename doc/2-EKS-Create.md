@@ -41,12 +41,12 @@ kubectl get svc --watch
 ```
 The management server terminal will display the creation process
 
-![Terminal display EKS creation process](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/EKS-Create.png)
+![Terminal display EKS creation process](./../img/EKS-Create.png)
 Caption: The terminal displays the EKS creation process
 
 eksctl will complete the EKS cluster creation through the AWS Cloudformation service. You can also view the creation process in the Cloudformation service in the console, and view and analyze the events in Cloudformation when an exception occurs to understand the detailed cause of the error.
 
-![Cloudformation shows EKS creation process](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/EKS-Create-Console.png)
+![Cloudformation shows EKS creation process](./../img/EKS-Create-Console.png)
 Caption: Cloudformation shows EKS creation process
 
 ### 2.2 Node group creation
@@ -55,7 +55,8 @@ The worker thread computer in Kubernetes is called a “node”, and the Amazon 
 
 Below we will create the node group in EKS by using eksctl and [parameter file](https://eksctl.io/usage/schema/). Using the parameter file can facilitate later modification and multiplexing.
 
-If you want to log in to the EKS working node through SSH in the future, you need to configure the ssh section and the parameter publicKeyName in it. You can use the same key pair as the management machine EC2 created previously, or you can create a new key pair and assign it to the EKS node. .
+If you want to log in to the EKS working node through SSH in the future, you need to configure the ssh section and the parameter publicKeyName in it. You can use the same key pair as the management machine EC2 created previously, or you can create a new key pair and assign it to the EKS node..
+
 
 ```
 mkdir -p ~/download
@@ -113,7 +114,7 @@ nodeGroups:
 `eksctl create nodegroup --config-file=./EKS-Shiny-NodeGroup.yaml`
 
 ## In some abnormal cases, if you need to delete the NodeGroup that failed before, you can execute the following command
-## eksctl delete nodegroup --config-file=./EKS-Shiny-NodeGroup.yaml --approve
+`eksctl delete nodegroup --config-file=./EKS-Shiny-NodeGroup.yaml --approve`
 
 ## View the current node group information and confirm that the status of each node is displayed as "Ready"
 `kubectl get node --wide --watch`

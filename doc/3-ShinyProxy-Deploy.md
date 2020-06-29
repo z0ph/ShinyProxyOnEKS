@@ -97,6 +97,7 @@ Before creating the ShinyProxy container and pushing it, you need to make some c
 * Note that the start command path matching each Shiny container is consistent with the information in the original Dockerfile
 * ShinyProxy uses the Spring Boot framework, [related parameter settings](https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-application-properties.html) will affect its running configuration. For example, the size limit of the uploaded file in the Shiny container is only 1MB or 10MB by default. You can increase the limit by setting the spring section in the configuration file. You also need to set the corresponding value in the Shiny application.
 
+
 ```
 cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/shinyproxy-example
 
@@ -147,3 +148,124 @@ logging:
   file:
     shinyproxy.log
 ```
+
+### 3.4 Container push to Amazon ECR
+
+To complete the overall deployment, we need to push three containers to the Amazon ECR mirror warehouse, including:
+
+* ShinyProxy container
+* kube-proxy-sidecar container (for the proxy function of ShinyProxy)
+* Shiny test application container
+
+When marking the upload of the container image, please pay attention to replace the AWS account with your account information.
+The container label in ECR can be used to release version control of different containers multiple times. See: [Push Image] (https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/docker-push-ecr-image.html)
+
+```
+## Mark and push Shiny test application container to ECR service
+docker tag rocker/shiny:latest <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shiny-application:v1
+docker push <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shiny-application:v1
+
+## Create, mark and push kube-proxy-sidecar container
+cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/kube-proxy-sidecar
+docker build -t <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/kube-proxy-sidecar:v1.
+docker push <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/kube-proxy-sidecar:v1
+
+## Create, mark and push containers to ECR services, the tags can be customized
+cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/shinyproxy-example
+docker build -t <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shinyproxy-application:v1.
+docker push <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shinyproxy-application:v1
+
+```
+
+### 3.5 ShinyProxy deployment
+
+The sp-authorization.yaml file does not need to be modified.
+
+Edit the sp-service.yaml file so that EKS automatically creates a load balancer for easy access after deployment.
+Change the type to LoadBalancer, where the port parameter is the port used by the subsequent load balancer.
+
+```
+cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes
+
+vi sp-service.yaml
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: shinyproxy
+spec:
+  type: **LoadBalancer**
+  selector:
+    run: shinyproxy
+  ports:
+  -protocol: TCP
+** port****:**** ****80**
+    targetPort: 8080
+    nodePort: 32094
+```
+
+Edit the sp-deployment.yaml file and modify the contents to correspond to the container names and labels that have been published in the Amazon ECR mirror warehouse in the current environment. Note that you need to modify the AWS account number as your account information.
+
+```
+cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes
+
+vi sp-deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shinyproxy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      run: shinyproxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: shinyproxy
+    spec:
+      containers:
+      -name: shinyproxy
+        image: <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shinyproxy-application:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        -containerPort: 8080
+      -name: kube-proxy-sidecar
+        image: <AWS account ID>.dkr.ecr.cn-northwest-1.amazonaws.com.cn/kube-proxy-sidecar:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        -containerPort: 8001
+      imagePullSecrets:
+
+```
+
+## Use kubectl to complete the deployment
+`kubectl apply -f sp-authorization.yaml`
+`kubectl apply -f sp-deployment.yaml`
+`kubectl apply -f sp-service.yaml`
+
+## If the sp-deployment.yaml file is modified later, you can re-apply to apply the new content
+`kubectl apply -f sp-deployment.yaml`
+
+## You can use the following command to view the deployment of ShinyProxy. Under normal circumstances, the Running status will be displayed soon.
+`kubectl get pod -n shiny --watch`
+
+## The deployment process will automatically create an AWS load balancer for access to ShinyProxy
+## Use the following command to get the access address link of AWS load balancer information in the EXTERNAL-IP column
+## The load balancer has a process of creating and taking effect for about a few minutes. You can confirm the status of the load balancer through the AWS console before accessing
+`kubectl get svc`
+
+
+When accessing the load balancer address and port, the login interface of ShinyProxy can be displayed normally. Enter the user name and password information configured previously to display the ShinyProxy management interface, and click the existing Shiny application to start them. At this point, the ShinyProxy platform has successfully run on the Amazon EKS service.
+
+![ShinyProxy main interface](./../img/ShinyProxy-GUI.png)
+Photo caption: ShinyProxy main interface
+
+![Run interface of Shiny application](./../img/ShinyProxy-Shiny-GUI.png)
+Photo caption: Shiny application running interface
+
+## License
+
+This library is licensed under the MIT-0 License. See the LICENSE file.
