@@ -5,6 +5,8 @@ Document version: v0.3
 
 Date: 03/21/2020
 
+Translated to English from [ShinyProxyOnEKS-China](https://github.com/MMichael-S/ShinyProxyOnEKS-China)
+
 Scope of application:
 
 * **AWS regions, this article takes AWS Ningxia region as an example**
@@ -19,7 +21,7 @@ Scope of application:
 R is an open source language and operating environment widely used for statistical analysis and drawing, and is also an excellent tool for statistical calculation and statistical drawing. [Shiny](https://shiny.rstudio.com/) is a product for R software launched by [Rstudio](https://rstudio.com/), which allows users to write without heavy code Easily build interactive Web applications directly from R, and provide access to people through the Internet in the form of Web applications, so that visitors can easily interact with data and analysis.
 Industry experts, data scientists and analysts from all over the world have created many powerful web applications based on Shiny, such as the COVID-19 virus epidemic that everyone is most concerned about recently. Dr. Edward Parker from London School of Hygiene & Tropical Medicine uses Shiny Constructed an online kanban for multi-dimensional understanding and analysis of COVID-19 epidemic data.
 
-![Source: https://shiny.rstudio.com/gallery/covid19-tracker.html](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/shiny-COVID-19 .png)
+![Source:https://shiny.rstudio.com/gallery/covid19-tracker.html](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/shiny-COVID-19.png)
 Source: https://shiny.rstudio.com/gallery/covid19-tracker.html
 
 Many important functions are not provided in the open source version of Shiny, such as authentication, multiple Shiny process support, Shiny application performance monitoring, SSL-based secure connection, resource allocation control, etc. How to achieve enterprise-level safety certification? How to achieve failure recovery in seconds? How to achieve access support for massive concurrent users? These factors have caused users to encounter great obstacles in building an enterprise production environment for multi-user scenarios.
@@ -39,7 +41,7 @@ Although ShinyProxy provides a fault-tolerant mechanism and high-availability de
 * Such as abnormal configuration or runtime abnormality of ShinyProxy
 
 
-![ShinyProxy Failure Risk] (https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/shinyproxy-risk.png)
+![ShinyProxy Failure Risk](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/img/shinyproxy-risk.png)
 Caption: ShinyProxy's failure risk
 
 Based on the above factors, we still need to design a set of highly reliable and high-performance technology platforms and architectures for ShinyProxy to support the good operation of the entire platform. **In this article, we will focus on how to combine Amazon EKS and other mature services on the AWS platform to quickly build a high-quality Shiny platform with high security, high reliability, high flexibility, and cost optimization. **
@@ -49,25 +51,25 @@ Based on the above factors, we still need to design a set of highly reliable and
 
 [Kubernetes](https://kubernetes.io/) is an open source system for containerized application deployment, expansion and automated management, and [Amazon Elastic Kubernetes Service](https://aws.amazon.com/ cn/eks/) (Amazon EKS) is a fully managed [Kubernetes](https://aws.amazon.com/kubernetes/) service that allows you to easily run Kubernetes on AWS without your own support or maintenance Kubernetes control level, so you can focus more on the code and functions of the application, and you can also take full advantage of all the advantages of open source tools in the community.
 
-**Amazon EKS provided services in multiple AWS regions around the world in June 2018, and on February 28, 2020 in the AWS China (Beijing) region operated by Halo New Network and AWS China (Western Cloud Data) (Ningxia) The region is online, and the latest Kubernetes 1.15 version is provided in line with the global AWS region in the near future. **
+**Amazon EKS provided services in multiple AWS regions around the world in June 2018, and on February 28, 2020 in the AWS China (Beijing) region operated by Halo New Network and AWS China (Western Cloud Data) (Ningxia) The region is online, and the latest Kubernetes 1.15 version is provided in line with the global AWS region in the near future.**
 
 * EKS runs Kubernetes management infrastructure across multiple AWS Availability Zones, automatically detects and replaces unhealthy control plane nodes, and provides on-demand upgrades and patching with zero downtime;
 * EKS automatically applies the latest security patches to your cluster control plane, and works closely with the community to ensure that critical security issues are resolved before deploying new versions and patches to existing clusters;
 * EKS runs upstream Kubernetes and is certified to be compatible with Kubernetes, so applications hosted by EKS are fully compatible with applications hosted by all standard Kubernetes environments.
 
-## [One, platform architecture and description] (https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/1-Architecture.md)
+## [One, platform architecture and description](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/1-Architecture.md)
 
 
 
-## [Second, Amazon EKS creation] (https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/2-EKS-Create.md)
+## [Second, Amazon EKS creation](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/2-EKS-Create.md)
 
 
 
-## [Three, ShinyProxy deployment] (https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/3-ShinyProxy-Deploy.md)
+## [Three, ShinyProxy deployment](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/3-ShinyProxy-Deploy.md)
 
 
 
-## [Four, features and optimization] (https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/4-Optimization.md)
+## [Four, features and optimization](https://github.com/MMichael-S/ShinyProxyOnEKS-China/blob/master/doc/4-Optimization.md)
 
 
 ## Summary of the plan
