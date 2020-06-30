@@ -1,17 +1,16 @@
 #!/bin/bash
 
-## EKS集群名
+## EKS cluster name
 EKS_CLUSTER_NAME=EKS-ZHY
-## AWS区域
-REGION_EKS=cn-northwest-1
-## 可自定义Tag标签信息，用于后续的费用跟踪及其他管理（可选项）
-TAG="Environment=Alpha-Test,Application=Shiny"
-## 配置文件方式，可参考：
+## AWS Region
+REGION_EKS=eu-west-1
+## Can customize Tag information for subsequent cost tracking and other management (optional)
+TAG="Environment=dev,Application=ShinyProxy"
+## For configuration file method, please refer to:
 ## https://github.com/weaveworks/eksctl/blob/master/examples/02-custom-vpc-cidr-no-nodes.yaml
 
 eksctl create cluster \
   --name=$EKS_CLUSTER_NAME \
-  --version=1.15 \
   --region=$REGION_EKS \
   --tags $TAG \
   --without-nodegroup \
@@ -20,7 +19,7 @@ eksctl create cluster \
   --appmesh-access \
   --alb-ingress-access
 
-## 附加选项的说明，增加下列选项在EKS集群创建中将自动创建相关的IAM策略
+## Description of additional options, adding the following options will automatically create related IAM strategies during EKS cluster creation
 <<COMMENT
 Cluster and nodegroup add-ons flags:
       --asg-access            enable IAM policy for cluster-autoscaler
@@ -30,13 +29,13 @@ Cluster and nodegroup add-ons flags:
       --alb-ingress-access    enable full access for alb-ingress-controller
 COMMENT
 
-## 如需删除创建的EKS集群，可使用下面的命令
+## To delete the created EKS cluster, use the following command
 ## eksctl delete cluster --name=$EKS_CLUSTER_NAME --region=$REGION_EKS
 
-## 集群配置通常需要 10 到 15 分钟
-## 集群将自动创建所需的VPC/安全组/IAM 角色/EKS API服务等资源
+## Cluster configuration usually takes 10 to 15 minutes
+## The cluster will automatically create the required VPC/security group/IAM role/EKS API service and other resources
 
-## 集群访问测试
+## Cluster access test
 ## watch -n 2 kubectl get svc
 kubectl get svc
 

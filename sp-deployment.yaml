@@ -15,12 +15,12 @@ spec:
     spec:
       containers:
       - name: shinyproxy
-        image: 467455613745.dkr.ecr.cn-northwest-1.amazonaws.com.cn/shinyproxy-application:share13
+        image: <AWS_ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shinyproxy-application:share13
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
       - name: kube-proxy-sidecar
-        image: 467455613745.dkr.ecr.cn-northwest-1.amazonaws.com.cn/kube-proxy-sidecar:v2
+        image: <AWS_ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/kube-proxy-sidecar:v2
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8001
