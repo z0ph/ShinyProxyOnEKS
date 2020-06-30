@@ -27,7 +27,7 @@ aws ecr create-repository \
 
 ## Log into the ECR service (the following commands do not need to be modified and executable, pay attention to retain the $ symbol and brackets)
 ## Successful execution will return "Login Succeeded" message
-$(aws ecr get-login --no-include-email --region eu-west-1)
+$(aws ecr get-login-password | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com)
 ```
 
 ### 3.2 Shiny test application
@@ -65,7 +65,7 @@ vi kube-proxy-sidecar/Dockerfile
 ## Modify the content of the Dockerfile file in the kube-proxy-sidecar directory to:
 
 FROM alpine:3.6
-ADD https://share-aws-nx.s3.cn-northwest-1.amazonaws.com.cn/shiny/kubectl1.7.4 /usr/local/bin/kubectl
+ADD https://share-aws-nx.s3.cn-northwest-1.amazonaws.com/shiny/kubectl1.7.4 /usr/local/bin/kubectl
 RUN chmod +x /usr/local/bin/kubectl
 EXPOSE 8001
 ENTRYPOINT ["/usr/local/bin/kubectl", "proxy"]
@@ -78,7 +78,7 @@ Modify ShinyProxy's Dockerfile file to update ShinyProxy to the latest stable ve
 FROM openjdk:8-jre
 
 RUN mkdir -p /opt/shinyproxy/
-RUN wget https://share-aws-nx.s3.cn-northwest-1.amazonaws.com.cn/shiny/shinyproxy-2.3.0.jar -O /opt/shinyproxy/shinyproxy.jar
+RUN wget https://share-aws-nx.s3.cn-northwest-1.amazonaws.com/shiny/shinyproxy-2.3.0.jar -O /opt/shinyproxy/shinyproxy.jar
 COPY application.yml /opt/shinyproxy/application.yml
 
 WORKDIR /opt/shinyproxy/
@@ -108,10 +108,10 @@ proxy:
   authentication: simple
   admin-groups: admins
   users:
-  -name: admin
+  - name: admin
     password: Admin@123
     groups: admins
-  -name: guest
+  - name: guest
     password: Guest@123
     groups: guest
   container-backend: kubernetes
@@ -125,13 +125,13 @@ proxy:
     image-pull-policy: IfNotPresent
     image-pull-secret:
   specs:
-  -id: 00_demo_shiny_application
+  - id: 00_demo_shiny_application
     display-name: Simple Shiny Application Demo
     description: Simple Shiny Application Demo
     container-cmd: ["sh", "/usr/bin/shiny-server.sh"]
-    container-image: <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shiny-application:v1
+    container-image: <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/shiny-application:v1
     access-groups: [admins, guest]
-  -id: 01_hello_shiny_application
+  - id: 01_hello_shiny_application
     display-name: Hello Application
     description: Application which demonstrates the basics of a Shiny app
     container-cmd: ["R", "-e", "shinyproxy::run_01_hello()"]
@@ -162,18 +162,18 @@ The container tag in ECR can be used to release version control of different con
 
 ```
 ## Mark and push Shiny test application container to ECR service
-docker tag rocker/shiny:latest <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shiny-application:v1
-docker push <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shiny-application:v1
+docker tag rocker/shiny:latest <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/shiny-application:v1
+docker push <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/shiny-application:v1
 
 ## Create, mark and push kube-proxy-sidecar container
 cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/kube-proxy-sidecar
-docker build -t <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/kube-proxy-sidecar:v1 .
-docker push <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/kube-proxy-sidecar:v1
+docker build -t <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/kube-proxy-sidecar:v1 .
+docker push <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/kube-proxy-sidecar:v1
 
 ## Create, mark and push containers to ECR services, the tags can be customized
 cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes/shinyproxy-example
-docker build -t <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shinyproxy-application:v1 .
-docker push <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shinyproxy-application:v1
+docker build -t <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/shinyproxy-application:v1 .
+docker push <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/shinyproxy-application:v1
 
 ```
 
@@ -182,7 +182,7 @@ docker push <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shinyproxy-appli
 The `sp-authorization.yaml` file does not need to be modified.
 
 Edit the `sp-service.yaml` file so that EKS automatically creates a load balancer for easy access after deployment.
-Change the type to LoadBalancer, where the port parameter is the port used by the subsequent load balancer.
+Change the type to `LoadBalancer`, where the port parameter is the port used by the subsequent load balancer.
 
 ```
 cd ~/download/shinyproxy-config-examples/03-containerized-kubernetes
@@ -194,7 +194,7 @@ apiVersion: v1
 metadata:
   name: shinyproxy
 spec:
-  type: **LoadBalancer**
+  type: LoadBalancer
   selector:
     run: shinyproxy
   ports:
@@ -228,12 +228,12 @@ spec:
     spec:
       containers:
       -name: shinyproxy
-        image: <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/shinyproxy-application:v1
+        image: <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/shinyproxy-application:v1
         imagePullPolicy: IfNotPresent
         ports:
         -containerPort: 8080
       -name: kube-proxy-sidecar
-        image: <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com.cn/kube-proxy-sidecar:v1
+        image: <AWS account ID>.dkr.ecr.eu-west-1.amazonaws.com/kube-proxy-sidecar:v1
         imagePullPolicy: IfNotPresent
         ports:
         -containerPort: 8001

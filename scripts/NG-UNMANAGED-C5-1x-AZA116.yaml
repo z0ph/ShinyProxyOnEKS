@@ -38,10 +38,10 @@ nodeGroups:
       }
     iam:
       attachPolicyARNs:
-        - arn:aws-cn:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws-cn:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws-cn:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws-cn:iam::aws:policy/CloudWatchFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
       withAddonPolicies:
         externalDNS: true
         certManager: true
