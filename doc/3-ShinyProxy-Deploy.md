@@ -215,7 +215,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shinyproxy
-  namespace: default
+  namespace: shiny
 spec:
   selector:
     matchLabels:
@@ -247,10 +247,10 @@ spec:
 - `kubectl apply -f sp-service.yaml`
 
 ## If the sp-deployment.yaml file is modified later, you can re-apply to apply the new content
-`kubectl apply -f sp-deployment.yaml`
+- `kubectl apply -f sp-deployment.yaml`
 
 ## You can use the following command to view the deployment of ShinyProxy. Under normal circumstances, the Running status will be displayed soon.
-`kubectl get pod -n shiny --watch`
+- `kubectl get pod -n shiny --watch`
 
 ## The deployment process will automatically create an AWS load balancer for access to ShinyProxy
 ## Use the following command to get the access address link of AWS load balancer information in the EXTERNAL-IP column
